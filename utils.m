@@ -97,8 +97,6 @@ void addWindows(CFArrayRef windows, Windows *context, int *count) {
         char *buffer = malloc(sizeof(char) * WINDOW_NAME_LENGTH);
         CFStringGetCString(windowTitle, buffer, WINDOW_NAME_LENGTH, kCFStringEncodingUTF8);
 
-//printf("BUFFER: %s\n", buffer);
-
         context->elements[*count] = malloc(sizeof(Window));
         context->elements[*count]->uiElement = window;
         context->elements[*count]->name = buffer;
@@ -121,15 +119,7 @@ int getWindows(Windows *context) {
         getProcessWindows(&psn, &windows);
         if(windows == NULL) continue;
 
-/*CFStringRef procName = NULL;
-CopyProcessName(&psn, &procName);
-NSLog(@"Found process: %@", (NSString *)procName);
-printf("==========\n");
-CFRelease(procName);*/
-
         addWindows(windows, context, &count);
-//CFRelease(windows);
-//printf("\n\n");
     }
 
     return count;
@@ -156,5 +146,3 @@ void getFrame(CGPoint *pos, CGSize *size) {
     size->width = frame.size.width;
     size->height = frame.size.height;
 }
-
-// CFRunLoopRunInMode(kCFRunLoopDefaultMode, EVENT_COLLECT_SECONDS, false)
