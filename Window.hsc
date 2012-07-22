@@ -12,6 +12,9 @@ import Foreign.C
 #let float_type = "CFloat"
 #endif
 
+foreign import ccall "ApplicationServices/ApplicationServices.h AXAPIEnabled"
+  axAPIEnabled :: IO Bool
+
 foreign import ccall "utils.h printWindow"
   printWindow :: Ptr Window -> IO ()
 

@@ -4,6 +4,8 @@ module Main where
 import Control.Concurrent
 import Control.Monad
 import Data.Char
+import System.Exit
+import System.IO
 
 import Foreign
 import Foreign.C
@@ -60,7 +62,12 @@ screen = do
 
 main :: IO ()
 main = do
-  s <- screen
-  forever $ do
+  hasAPI <- axAPIEnabled
+  if not hasAPI then do
+      hPutStrLn stderr "You need to enable access for Accessible Devices in Universal Access"
+      exitWith $ ExitFailure 1
+  else do
+    s <- screen
+    forever $ do
          tileWide s
          threadDelay $ 1000 * 500
