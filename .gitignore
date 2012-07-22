@@ -1,0 +1,4 @@
+osxmonad
+Window.hs
+*.hi
+*.o

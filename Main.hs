@@ -1,6 +1,7 @@
 {-# LANGUAGE ForeignFunctionInterface #-}
 module Main where
 
+import Control.Concurrent
 import Control.Monad
 import Data.Char
 
@@ -17,34 +18,49 @@ tileWideWindow :: CDouble -> CDouble -> Int -> Window -> Window
 tileWideWindow width height index window =
     window { pos = pos', size = size' }
         where
-          pos' = (pos window) { x = fromIntegral index * width, y = 0 }
+          pos' = (pos window) { x = fromIntegral index * width, y = 22 } -- Hack: menu bar
           size' = (size window) { width = width, height = height }
 
-tileWide :: IO ()
-tileWide = do
+tileWide :: (CGPoint, CGSize) -> IO ()
+tileWide (_, CGSize screenWidth screenHeight) = do
+  transitioning <- isSpaceTransitioning
+  if transitioning then
+      return ()
+  else do
+    context <- new (Windows nullPtr)
+
+    count <- getWindows context
+    filledContext <- peek context
+
+    windowsPtrs <- peekArray count . elements $ filledContext
+    windows <- mapM (\winPtr -> peek winPtr) windowsPtrs
+
+    namedWindows <- filterM (\win -> (peekCString . name $ win) >>= return . not . all isSpace) windows
+
+    let tileWidth = screenWidth / fromIntegral (length namedWindows)
+
+    let windows' = map (uncurry $ tileWideWindow tileWidth screenHeight) (zip [0..] namedWindows)
+
+    mapM_ updateWindow windows'
+
+    freeWindows context
+    free context
+
+screen :: IO (CGPoint, CGSize)
+screen = do
+  screenPosPtr <- new (CGPoint 0 0)
   screenSizePtr <- new (CGSize 0 0)
-  getScreenSize screenSizePtr
+  getFrame screenPosPtr screenSizePtr
   screenSize <- peek screenSizePtr
+  screenPos <- peek screenPosPtr
   free screenSizePtr
+  free screenPosPtr
 
-  context <- new (Windows nullPtr)
-
-  count <- getWindows context
-  filledContext <- peek context
-
-  windowsPtrs <- peekArray count . elements $ filledContext
-  windows <- mapM (\winPtr -> peek winPtr) windowsPtrs
-
-  let tileWidth = width screenSize / fromIntegral count
-  let screenHeight = height screenSize
-
-  let windows' = map (uncurry $ tileWideWindow tileWidth screenHeight) (zip [0..] windows)
-
-  mapM_ updateWindow windows'
-
-  freeWindows context
-  free context
+  return (screenPos, screenSize)
 
 main :: IO ()
 main = do
-  forever tileWide
+  s <- screen
+  forever $ do
+         tileWide s
+         threadDelay $ 1000 * 500

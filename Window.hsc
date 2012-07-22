@@ -24,8 +24,11 @@ foreign import ccall "utils.h getWindows"
 foreign import ccall "utils.h freeWindows"
   freeWindows :: Ptr Windows -> IO ()
 
-foreign import ccall "utils.h getScreenSize"
-  getScreenSize :: Ptr CGSize -> IO ()
+foreign import ccall "utils.h getFrame"
+  getFrame :: Ptr CGPoint -> Ptr CGSize -> IO ()
+
+foreign import ccall "utils.h isSpaceTransitioning"
+  isSpaceTransitioning :: IO Bool
 
 data CGPoint = CGPoint { x :: (#float_type), y :: (#float_type) } deriving Show
 data CGSize = CGSize { width :: (#float_type), height :: (#float_type) } deriving Show

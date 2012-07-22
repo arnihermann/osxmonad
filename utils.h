@@ -3,6 +3,8 @@
 #define WINDOW_NAME_LENGTH 255
 #define WINDOWS_ELEMENTS_LENGTH 255
 
+#define SPACES_TRANSITIONING_ID 65538
+
 typedef struct {
     AXUIElementRef uiElement;
     char *name;
@@ -18,4 +20,5 @@ void printWindow(Window *);
 int getWindows(Windows *);
 void freeWindows(Windows *);
 void setWindow(Window *);
-void getScreenSize(CGSize *);
+void getFrame(CGPoint *, CGSize *);
+bool isSpaceTransitioning();

@@ -1,4 +1,4 @@
 all:
-	gcc -g -c utils.c
+	gcc -g -c utils.m
 	hsc2hs Window.hsc
-	ghc --make -framework Cocoa Main.hs Window.hs utils.o
+	ghc -o osxmonad --make -framework Cocoa Main.hs Window.hs utils.o

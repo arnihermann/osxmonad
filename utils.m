@@ -1,5 +1,8 @@
 #include "utils.h"
 
+#import <AppKit/NSApplication.h>
+#import <AppKit/NSScreen.h>
+
 #include <Carbon/Carbon.h>
 
 void printWindow(Window *win) {
@@ -65,6 +68,12 @@ void setWindowSize(CGSize size, AXUIElementRef window) {
     CFRelease(valueRef);
 }
 
+bool isSpaceTransitioning() {
+    int spaceNumber = -1;
+    CGSGetWorkspace(_CGSDefaultConnection(), &spaceNumber);
+    return spaceNumber == SPACES_TRANSITIONING_ID;
+}
+
 void setWindow(Window *window) {
     setWindowPosition(window->pos, window->uiElement);
     setWindowSize(window->size, window->uiElement);
@@ -88,6 +97,8 @@ void addWindows(CFArrayRef windows, Windows *context, int *count) {
         char *buffer = malloc(sizeof(char) * WINDOW_NAME_LENGTH);
         CFStringGetCString(windowTitle, buffer, WINDOW_NAME_LENGTH, kCFStringEncodingUTF8);
 
+//printf("BUFFER: %s\n", buffer);
+
         context->elements[*count] = malloc(sizeof(Window));
         context->elements[*count]->uiElement = window;
         context->elements[*count]->name = buffer;
@@ -110,7 +121,15 @@ int getWindows(Windows *context) {
         getProcessWindows(&psn, &windows);
         if(windows == NULL) continue;
 
+/*CFStringRef procName = NULL;
+CopyProcessName(&psn, &procName);
+NSLog(@"Found process: %@", (NSString *)procName);
+printf("==========\n");
+CFRelease(procName);*/
+
         addWindows(windows, context, &count);
+//CFRelease(windows);
+//printf("\n\n");
     }
 
     return count;
@@ -129,7 +148,13 @@ void freeWindows(Windows *context) {
     context->elements = NULL;
 }
 
-void getScreenSize(CGSize *size) {
-    size->width = CGDisplayPixelsWide(CGMainDisplayID());
-    size->height = CGDisplayPixelsHigh(CGMainDisplayID());
+void getFrame(CGPoint *pos, CGSize *size) {
+    NSRect frame = [[[NSScreen screens] objectAtIndex:0] visibleFrame];
+
+    pos->x = frame.origin.x;
+    pos->y = frame.origin.y;
+    size->width = frame.size.width;
+    size->height = frame.size.height;
 }
+
+// CFRunLoopRunInMode(kCFRunLoopDefaultMode, EVENT_COLLECT_SECONDS, false)
