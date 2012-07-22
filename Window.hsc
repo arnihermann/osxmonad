@@ -15,9 +15,6 @@ import Foreign.C
 foreign import ccall "ApplicationServices/ApplicationServices.h AXAPIEnabled"
   axAPIEnabled :: IO Bool
 
-foreign import ccall "utils.h printWindow"
-  printWindow :: Ptr Window -> IO ()
-
 foreign import ccall "utils.h setWindow"
   setWindow :: Ptr Window -> IO ()
 

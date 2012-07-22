@@ -5,15 +5,6 @@
 
 #include <Carbon/Carbon.h>
 
-void printWindow(Window *win) {
-    printf(
-        "-- %s (x: %f y: %f) (%f x %f)\n",
-        win->name,
-        win->pos.x, win->pos.y,
-        win->size.width, win->size.height
-        );
-}
-
 void getProcessWindows(ProcessSerialNumber *psn, CFArrayRef *windows) {
     pid_t pid;
     GetProcessPID(psn, &pid);
