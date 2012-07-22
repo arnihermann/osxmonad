@@ -15,11 +15,17 @@ import Foreign.C
 foreign import ccall "utils.h printWindow"
   printWindow :: Ptr Window -> IO ()
 
+foreign import ccall "utils.h setWindow"
+  setWindow :: Ptr Window -> IO ()
+
 foreign import ccall "utils.h getWindows"
   getWindows :: Ptr Windows -> IO Int
 
 foreign import ccall "utils.h freeWindows"
   freeWindows :: Ptr Windows -> IO ()
+
+foreign import ccall "utils.h getScreenSize"
+  getScreenSize :: Ptr CGSize -> IO ()
 
 data CGPoint = CGPoint { x :: (#float_type), y :: (#float_type) } deriving Show
 data CGSize = CGSize { width :: (#float_type), height :: (#float_type) } deriving Show

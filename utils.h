@@ -17,3 +17,5 @@ typedef struct {
 void printWindow(Window *);
 int getWindows(Windows *);
 void freeWindows(Windows *);
+void setWindow(Window *);
+void getScreenSize(CGSize *);

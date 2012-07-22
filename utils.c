@@ -42,6 +42,12 @@ CGPoint getWindowPosition(AXUIElementRef window) {
     return pos;
 }
 
+void setWindowPosition(CGPoint point, AXUIElementRef window) {
+    AXValueRef valueRef = AXValueCreate(kAXValueCGPointType, &point);
+    AXUIElementSetAttributeValue(window, kAXPositionAttribute, valueRef);
+    CFRelease(valueRef);
+}
+
 CGSize getWindowSize(AXUIElementRef window) {
     AXValueRef valueRef;
     CGSize size;
@@ -51,6 +57,17 @@ CGSize getWindowSize(AXUIElementRef window) {
     CFRelease(valueRef);
 
     return size;
+}
+
+void setWindowSize(CGSize size, AXUIElementRef window) {
+    AXValueRef valueRef = AXValueCreate(kAXValueCGSizeType, &size);
+    AXUIElementSetAttributeValue(window, kAXSizeAttribute, valueRef);
+    CFRelease(valueRef);
+}
+
+void setWindow(Window *window) {
+    setWindowPosition(window->pos, window->uiElement);
+    setWindowSize(window->size, window->uiElement);
 }
 
 void addWindows(CFArrayRef windows, Windows *context, int *count) {
@@ -85,6 +102,7 @@ int getWindows(Windows *context) {
     int count = 0;
 
     context->elements = malloc(sizeof(Window*) * WINDOWS_ELEMENTS_LENGTH);
+    memset(context->elements, 0, sizeof(Window*) * WINDOWS_ELEMENTS_LENGTH);
 
     ProcessSerialNumber psn = {0, kNoProcess};
     while(!GetNextProcess(&psn)) {
@@ -102,7 +120,16 @@ void freeWindows(Windows *context) {
     int i;
     for(i = 0; context->elements[i] != NULL; i++) {
         free(context->elements[i]->name);
+        context->elements[i]->name = NULL;
+
         free(context->elements[i]);
+        context->elements[i] = NULL;
     }
     free(context->elements);
+    context->elements = NULL;
+}
+
+void getScreenSize(CGSize *size) {
+    size->width = CGDisplayPixelsWide(CGMainDisplayID());
+    size->height = CGDisplayPixelsHigh(CGMainDisplayID());
 }
