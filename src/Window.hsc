@@ -7,9 +7,9 @@ import Foreign.C
 #include "utils.h"
 
 #if CGFLOAT_IS_DOUBLE
-#let float_type = "CDouble"
+type ArchCFloat = CDouble
 #else
-#let float_type = "CFloat"
+type ArchCFloat = CFloat
 #endif
 
 foreign import ccall "ApplicationServices/ApplicationServices.h AXAPIEnabled"
@@ -30,8 +30,8 @@ foreign import ccall "utils.h getFrame"
 foreign import ccall "utils.h isSpaceTransitioning"
   isSpaceTransitioning :: IO Bool
 
-data CGPoint = CGPoint { x :: (#float_type), y :: (#float_type) } deriving Show
-data CGSize = CGSize { width :: (#float_type), height :: (#float_type) } deriving Show
+data CGPoint = CGPoint { x :: ArchCFloat, y :: ArchCFloat } deriving Show
+data CGSize = CGSize { width :: ArchCFloat, height :: ArchCFloat } deriving Show
 
 data AXUIElement
 
@@ -46,7 +46,7 @@ data Windows = Windows { elements :: Ptr (Ptr Window) } deriving Show
 
 instance Storable CGPoint where
     sizeOf _ = (#size CGPoint)
-    alignment _ = alignment (undefined :: (#float_type))
+    alignment _ = alignment (undefined :: ArchCFloat)
     peek ptr = do
       x' <- (#peek CGPoint, x) ptr
       y' <- (#peek CGPoint, y) ptr
@@ -57,7 +57,7 @@ instance Storable CGPoint where
 
 instance Storable CGSize where
     sizeOf _ = (#size CGSize)
-    alignment _ = alignment (undefined :: (#float_type))
+    alignment _ = alignment (undefined :: ArchCFloat)
     peek ptr = do
       width' <- (#peek CGSize, width) ptr
       height' <- (#peek CGSize, height) ptr

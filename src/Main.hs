@@ -16,7 +16,7 @@ updateWindow :: Window -> IO ()
 updateWindow window = do
   with window setWindow
 
-tileWideWindow :: CDouble -> CDouble -> Int -> Window -> Window
+tileWideWindow :: ArchCFloat -> ArchCFloat -> Int -> Window -> Window
 tileWideWindow width height index window =
     window { pos = pos', size = size' }
         where
