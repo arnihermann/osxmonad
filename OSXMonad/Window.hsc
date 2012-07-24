@@ -1,5 +1,5 @@
 {-# LANGUAGE ForeignFunctionInterface #-}
-module Window where
+module OSXMonad.Window where
 
 import Foreign
 import Foreign.C

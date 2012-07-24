@@ -15,14 +15,13 @@ category:            System
 build-type:          Simple
 cabal-version:       >=1.8
 
-executable osxmonad
-  hs-source-dirs:      src
-  other-modules:       Window
-  main-is:             Main.hs
+library
+  exposed-modules:     OSXMonad.Core
+  other-modules:       OSXMonad.Window
   ghc-options:         -framework Cocoa
   c-sources:           src/utils.m
   include-dirs:        src
-  build-depends:       base ==4.5.*
+  build-depends:       base ==4.5.*, xmonad ==0.10.1, X11 ==1.5.0.1
   build-tools:         hsc2hs
   extensions:
     EmptyDataDecls

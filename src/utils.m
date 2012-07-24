@@ -130,10 +130,15 @@ void freeWindows(Windows *context) {
 }
 
 void getFrame(CGPoint *pos, CGSize *size) {
-    NSRect frame = [[[NSScreen screens] objectAtIndex:0] visibleFrame];
+    NSRect frame = [[NSScreen mainScreen] frame];
+    NSRect visibleFrame = [[NSScreen mainScreen] visibleFrame];
 
-    pos->x = frame.origin.x;
-    pos->y = frame.origin.y;
-    size->width = frame.size.width;
-    size->height = frame.size.height;
+    // The origin is not setup correct when reading the origin.
+    // MenuBar is always up the top. Calculate where the "proper" origin is.
+    pos->y = frame.size.height - visibleFrame.size.height;
+    //pos->y = visibleFrame.origin.y;
+
+    pos->x = visibleFrame.origin.x;
+    size->width = visibleFrame.size.width;
+    size->height = visibleFrame.size.height;
 }
