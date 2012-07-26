@@ -1,0 +1,56 @@
+1 patch for repository http://code.haskell.org/xmonad:
+
+Thu Jul 26 09:19:45 EST 2012  brian@brianmckenna.org
+  * Add '-framework Cocoa' flag to GHC compilation
+
+New patches:
+
+[Add '-framework Cocoa' flag to GHC compilation
+brian@brianmckenna.org**20120725231945
+ Ignore-this: 19233cb15fd188de60d4c6cdc3cb0e57
+] hunk ./XMonad/Core.hs 459
+         -- temporarily disable SIGCHLD ignoring:
+         uninstallSignalHandlers
+         status <- bracket (openFile err WriteMode) hClose $ \h ->
+-            waitForProcess =<< runProcess "ghc" ["--make", "xmonad.hs", "-i", "-ilib", "-fforce-recomp", "-v0", "-o",binn] (Just dir)
++            waitForProcess =<< runProcess "ghc" ["--make", "xmonad.hs", "-i", "-framework", "Cocoa", "-ilib", "-fforce-recomp", "-v0", "-o",binn] (Just dir)
+                                     Nothing Nothing Nothing (Just h)
+ 
+         -- re-enable SIGCHLD:
+
+Context:
+
+[Correctly identify source files in ~/.lib (David McLean)
+Adam Vogt <vogt.adam@gmail.com>**20120430154222
+ Ignore-this: efc21bae061768ad15a36a5f7b6aeb87
+] 
+[Address versioning problems related to X11 1.6 release.
+Adam Vogt <vogt.adam@gmail.com>**20120320004924
+ Ignore-this: d49fe876f4fbb2ad8581da5ff46d0e7
+ 
+ Bump version to 0.10.1 since cabal uses hackage dependencies even when the
+ locally installed package differs.
+ 
+ Allow X11-1.6 dependency.
+] 
+[Drop PlainConfig from HCAR.tex: it doesn't exist in contrib.
+Adam Vogt <vogt.adam@gmail.com>**20111211004405
+ Ignore-this: f74f35fd01b64009237137faaf3299ca
+ 
+ The code for that moved out to a separate project:
+ http://braincrater.wordpress.com/2008/08/28/announcing-xmonad-light/
+] 
+[HCAR: update module count, date, versions, maintainer
+gwern0@gmail.com**20111204025931
+ Ignore-this: 4fb9d34c3e38a67d0d61ec09b744104
+] 
+[Minor updates to supporting files (for 0.10 release).
+Adam Vogt <vogt.adam@gmail.com>**20111118231324
+ Ignore-this: 412282a6d392063b9b67636735617700
+] 
+[TAG 0.10
+Adam Vogt <vogt.adam@gmail.com>**20111118195722
+ Ignore-this: b36d5585229493c07b2de5362942db9b
+] 
+Patch bundle hash:
+9297cc3745927c1ee275b7336f2f30cdd794edd6
