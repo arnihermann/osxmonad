@@ -16,8 +16,20 @@ typedef struct {
     Window **elements;
 } Windows;
 
+typedef struct {
+    int keyCode;
+    int altKey;
+    int commandKey;
+    int controlKey;
+    int shiftKey;
+} Event;
+
+Event globalEvent;
+
 int getWindows(Windows *);
 void freeWindows(Windows *);
 void setWindow(Window *);
 void getFrame(CGPoint *, CGSize *);
+void setupEventCallback();
+void collectEvent();
 bool isSpaceTransitioning();

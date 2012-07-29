@@ -142,3 +142,30 @@ void getFrame(CGPoint *pos, CGSize *size) {
     size->width = visibleFrame.size.width;
     size->height = visibleFrame.size.height;
 }
+
+void collectEvent() {
+    CFRunLoopRunInMode(kCFRunLoopDefaultMode, INT_MAX, YES);
+}
+
+CGEventRef callback(CGEventTapProxy proxy, CGEventType type, CGEventRef event, void *ref) {
+    globalEvent.keyCode = CGEventGetIntegerValueField(event, kCGKeyboardEventKeycode);
+
+    CGEventFlags eventMask = CGEventGetFlags(event);
+    globalEvent.altKey = (eventMask & kCGEventFlagMaskAlternate) != 0;
+    globalEvent.commandKey = (eventMask & kCGEventFlagMaskCommand) != 0;
+    globalEvent.controlKey = (eventMask & kCGEventFlagMaskControl) != 0;
+    globalEvent.shiftKey = (eventMask & kCGEventFlagMaskShift) != 0;
+
+    return event;
+}
+
+void setupEventCallback() {
+    CGEventMask eventMask = CGEventMaskBit(kCGEventKeyDown);
+    CFMachPortRef eventTap = CGEventTapCreate(kCGSessionEventTap, kCGHeadInsertEventTap, kCGEventTapOptionListenOnly, eventMask, callback, NULL);
+
+    CFRunLoopSourceRef runLoopSource = CFMachPortCreateRunLoopSource(kCFAllocatorDefault, eventTap, 0);
+
+    CFRunLoopAddSource(CFRunLoopGetCurrent(), runLoopSource, kCFRunLoopCommonModes);
+
+    CGEventTapEnable(eventTap, YES);
+}

@@ -27,6 +27,15 @@ foreign import ccall "utils.h freeWindows"
 foreign import ccall "utils.h getFrame"
   getFrame :: Ptr CGPoint -> Ptr CGSize -> IO ()
 
+foreign import ccall "utils.h setupEventCallback"
+  setupEventCallback :: IO ()
+
+foreign import ccall "utils.h &globalEvent"
+  globalEvent :: Ptr Event
+
+foreign import ccall "utils.h collectEvent"
+  collectEvent :: IO ()
+
 foreign import ccall "utils.h isSpaceTransitioning"
   isSpaceTransitioning :: IO Bool
 
@@ -40,6 +49,14 @@ data Window = Window {
       name :: CString,
       pos :: CGPoint,
       size :: CGSize
+    } deriving Show
+
+data Event = Event {
+      keyCode :: CInt,
+      altKey :: CInt,
+      commandKey :: CInt,
+      controlKey :: CInt,
+      shiftKey :: CInt
     } deriving Show
 
 data Windows = Windows { elements :: Ptr (Ptr Window) } deriving Show
@@ -89,3 +106,20 @@ instance Storable Windows where
       return $ Windows elements'
     poke ptr (Windows elements') = do
         (#poke Windows, elements) ptr elements'
+
+instance Storable Event where
+    sizeOf _ = (#size Event)
+    alignment _ = alignment (undefined :: CInt)
+    peek ptr = do
+      keyCode' <- (#peek Event, keyCode) ptr
+      altKey' <- (#peek Event, altKey) ptr
+      commandKey' <- (#peek Event, commandKey) ptr
+      controlKey' <- (#peek Event, controlKey) ptr
+      shiftKey' <- (#peek Event, shiftKey) ptr
+      return $ Event keyCode' altKey' commandKey' controlKey' shiftKey'
+    poke ptr (Event keyCode' altKey' commandKey' controlKey' shiftKey') = do
+        (#poke Event, keyCode) ptr keyCode'
+        (#poke Event, altKey) ptr altKey'
+        (#poke Event, commandKey) ptr commandKey'
+        (#poke Event, controlKey) ptr controlKey'
+        (#poke Event, shiftKey) ptr shiftKey'
