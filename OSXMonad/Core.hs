@@ -11,6 +11,8 @@ import System.Exit
 import System.IO
 
 import qualified Data.Map as Map
+import qualified Data.Maybe as Maybe
+import qualified Data.Set as Set
 
 import Foreign
 import Foreign.C
@@ -29,16 +31,16 @@ updateWindow window = do
   with window setWindow
 
 rectangleWindow :: Rectangle -> Window -> Window
-rectangleWindow r w =
-    w { pos = pos', size = size' }
+rectangleWindow (Rectangle x y w h) win =
+    win { pos = pos', size = size' }
       where
         pos'  = CGPoint {
-                  x = fromIntegral $ rect_x r,
-                  y = fromIntegral $ rect_y r
+                  x = fromIntegral x,
+                  y = fromIntegral y
                 }
         size' = CGSize {
-                  width  = fromIntegral $ rect_width  r,
-                  height = fromIntegral $ rect_height r
+                  width = fromIntegral w,
+                  height = fromIntegral h
                 }
 
 eventModBits :: Event -> XM.ButtonMask
@@ -66,8 +68,8 @@ getNamedWindows context = do
 
   filterM (\win -> (peekCString . name $ win) >>= return . not . all isSpace) windows
 
-tile' :: Rectangle -> Ptr Windows -> XM.X ()
-tile' r context = do
+tile' :: Ptr Windows -> XM.X ()
+tile' context = C.withWindowSet $ \ws -> do
   event <- XM.io getEvent
 
   xmc <- XM.asks XM.config
@@ -79,30 +81,40 @@ tile' r context = do
   fromMaybe (return ()) maybeAction
 
   namedWindows <- XM.io . getNamedWindows $ context
+  let stack = S.stack . S.workspace . S.current $ ws
+      wids = map (fromIntegral . wid) namedWindows
+      newStack = foldr S.insertUp ws $ wids
 
-  let windowStack = S.Stack 0 [] [fromIntegral x | x <- [1..length namedWindows - 1]]
+  XM.modify (\s -> s { XM.windowset = newStack })
 
-  (rectangles, _) <- C.runLayout (S.Workspace "OS X" (C.layoutHook xmc) (Just windowStack)) r
+  let rect = C.screenRect . S.screenDetail . S.current $ ws
+  (rectangles, _) <- C.runLayout (S.Workspace "OS X" (C.layoutHook xmc) stack) rect
 
-  let windows' = map (\(i, r) -> rectangleWindow r (namedWindows !! fromIntegral i)) rectangles
+  XM.io . print $ rectangles
+
+  let namedWindowsById = zip wids namedWindows
+      windows' = Maybe.catMaybes
+                 $ map (\(i, r) ->
+                        fmap (rectangleWindow r) (lookup i namedWindowsById)
+                       ) rectangles
 
   if null namedWindows
      then return ()
      else XM.io $ mapM_ updateWindow windows'
 
-tile :: Rectangle -> XM.X ()
-tile rectangle = do
+tile :: XM.X ()
+tile = do
   transitioning <- XM.io $ isSpaceTransitioning
   if transitioning
     then return ()
     else do
       context <- XM.io . new $ Windows nullPtr
-      tile' rectangle context
+      tile' context
       XM.io . freeWindows $ context
       XM.io . free $ context
 
-screen :: IO Rectangle
-screen = do
+screenRectangle :: IO Rectangle
+screenRectangle = do
   screenPosPtr <- new (CGPoint 0 0)
   screenSizePtr <- new (CGSize 0 0)
   getFrame screenPosPtr screenSizePtr
@@ -122,6 +134,8 @@ osxmonad :: (C.LayoutClass l XM.Window, Read (l XM.Window)) => XM.XConfig l -> I
 osxmonad initxmc = do
   setupEventCallback
 
+  rect <- screenRectangle
+
   let display = error "display"
       xmc = initxmc { C.layoutHook = C.Layout $ C.layoutHook initxmc }
       theRoot = 0
@@ -131,12 +145,14 @@ osxmonad initxmc = do
       mouseFocused = False
       mousePosition = Nothing
 
-      windowset = error "windowset"
-      mapped = error "mapped"
-      waitingUnmap = error "waitingUnmap"
-      dragging = error "dragging"
-      numberlockMask = error "numberlockMask"
-      extensibleState = error "extensibleState"
+      layout = C.layoutHook xmc
+
+      windowset = S.new layout (C.workspaces xmc) $ [C.SD rect] -- TODO: All screen sizes
+      mapped = Set.empty
+      waitingUnmap = Map.empty
+      dragging = Nothing
+      numberlockMask = 0
+      extensibleState = Map.empty
 
       conf = C.XConf display xmc theRoot normalBorder focusedBorder (XM.keys xmc xmc) buttonActions mouseFocused mousePosition
       state = C.XState windowset mapped waitingUnmap dragging numberlockMask extensibleState
@@ -147,8 +163,7 @@ osxmonad initxmc = do
       hPutStrLn stderr "You need to enable access for Accessible Devices in Universal Access"
       exitWith $ ExitFailure 1
     else do
-      s <- screen
       XM.runX conf state . forever $ do
-           tile s
+           tile
            XM.io . threadDelay $ 1000 * 500
       return ()

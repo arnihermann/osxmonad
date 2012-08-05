@@ -89,6 +89,7 @@ void addWindows(CFArrayRef windows, Windows *context, int *count) {
         CFStringGetCString(windowTitle, buffer, WINDOW_NAME_LENGTH, kCFStringEncodingUTF8);
 
         context->elements[*count] = malloc(sizeof(Window));
+        _AXUIElementGetWindow(window, &context->elements[*count]->wid);
         context->elements[*count]->uiElement = window;
         context->elements[*count]->name = buffer;
         context->elements[*count]->size = getWindowSize(window);

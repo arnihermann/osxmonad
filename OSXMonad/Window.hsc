@@ -45,6 +45,7 @@ data CGSize = CGSize { width :: ArchCFloat, height :: ArchCFloat } deriving Show
 data AXUIElement
 
 data Window = Window {
+      wid :: CInt,
       uiElement :: Ptr AXUIElement,
       name :: CString,
       pos :: CGPoint,
@@ -87,12 +88,14 @@ instance Storable Window where
     sizeOf _ = (#size Window)
     alignment _ = alignment (undefined :: CChar)
     peek ptr = do
+      wid' <- (#peek Window, wid) ptr
       uiElement' <- (#peek Window, uiElement) ptr
       name' <- (#peek Window, name) ptr
       pos' <- (#peek Window, pos) ptr
       size' <- (#peek Window, size) ptr
-      return $ Window uiElement' name' pos' size'
-    poke ptr (Window uiElement' name' pos' size') = do
+      return $ Window wid' uiElement' name' pos' size'
+    poke ptr (Window wid' uiElement' name' pos' size') = do
+        (#poke Window, wid) ptr wid'
         (#poke Window, uiElement) ptr uiElement'
         (#poke Window, name) ptr name'
         (#poke Window, pos) ptr pos'

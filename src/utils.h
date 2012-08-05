@@ -6,6 +6,7 @@
 #define SPACES_TRANSITIONING_ID 65538
 
 typedef struct {
+    CGWindowID wid;
     AXUIElementRef uiElement;
     char *name;
     CGPoint pos;
