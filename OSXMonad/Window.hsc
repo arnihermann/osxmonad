@@ -15,6 +15,9 @@ type ArchCFloat = CFloat
 foreign import ccall "ApplicationServices/ApplicationServices.h AXAPIEnabled"
   axAPIEnabled :: IO Bool
 
+foreign import ccall "utils.h setWindowFocused"
+  setWindowFocused :: Ptr Window -> IO ()
+
 foreign import ccall "utils.h setWindow"
   setWindow :: Ptr Window -> IO ()
 

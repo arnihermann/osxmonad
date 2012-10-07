@@ -31,6 +31,10 @@ updateWindow :: Window -> IO ()
 updateWindow window = do
   with window setWindow
 
+focusWindow :: Window -> IO ()
+focusWindow window = do
+  with window setWindowFocused
+
 rectangleWindow :: Rectangle -> Window -> Window
 rectangleWindow (Rectangle x y w h) win =
     win { pos = pos', size = size' }
@@ -92,10 +96,13 @@ tile' context = do
   (rectangles, _) <- C.runLayout (S.workspace . S.current $ ws) rect
 
   let namedWindowsById = zip wids namedWindows
+      focusedWindow = S.peek newStack >>= flip lookup namedWindowsById
       windows' = Maybe.catMaybes
                  $ map (\(i, r) ->
                         fmap (rectangleWindow r) (lookup i namedWindowsById)
                        ) rectangles
+
+  maybe (return ()) (XM.io . focusWindow) focusedWindow
 
   if null namedWindows
      then return ()

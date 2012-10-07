@@ -30,6 +30,7 @@ Event globalEvent;
 int getWindows(Windows *);
 void freeWindows(Windows *);
 void setWindow(Window *);
+void setWindowFocused(Window *);
 void getFrame(CGPoint *, CGSize *);
 void setupEventCallback();
 void collectEvent();

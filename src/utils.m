@@ -70,6 +70,14 @@ void setWindow(Window *window) {
     setWindowSize(window->size, window->uiElement);
 }
 
+void setWindowFocused(Window *window) {
+    AXUIElementSetAttributeValue(window->uiElement, kAXMainAttribute, kCFBooleanTrue);
+
+    AXUIElementRef application;
+    AXUIElementCopyAttributeValue(window->uiElement, kAXParentAttribute, &application);
+    AXUIElementSetAttributeValue(application, kAXFrontmostAttribute, kCFBooleanTrue);
+}
+
 void addWindows(CFArrayRef windows, Windows *context, int *count) {
     int j;
     for(j = 0; j < CFArrayGetCount(windows) && *count < WINDOWS_ELEMENTS_LENGTH; j++) {
