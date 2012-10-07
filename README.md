@@ -4,14 +4,10 @@ This is a library which allows XMonad to manage Mac OS X windows.
 
 ## Status
 
-* Only pure layouts work (i.e. `Tall`)
 * Only attached hook is `layoutHook`
-* No moving windows around
-* No keyboard shortcuts
 * No workspaces
 * No borders
 * No `focusFollowsMouse`
-* Crashes
 
 ## Installation
 
@@ -33,7 +29,8 @@ Create `~/.xmonad/xmonad.hs`:
     import OSXMonad.Core
 
     main = osxmonad defaultConfig {
-             layoutHook = Tall 1 (3/100) (1/2)
+             modMask = mod1Mask .|. mod4Mask,
+             keys = osxKeys
            }
 
 Now we can run `xmonad` to have our windows managed.
