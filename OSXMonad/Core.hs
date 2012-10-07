@@ -151,6 +151,21 @@ osxSendMessage a = do
                                 { S.workspace = (S.workspace $ S.current ws)
                                   { S.layout = l' }}}
 
+osxKeys :: C.XConfig C.Layout -> Map.Map (XM.KeyMask, XM.KeySym) (C.X ())
+osxKeys (C.XConfig {C.modMask = modMask}) = Map.fromList
+          [ ((modMask,                  XM.xK_space ), osxSendMessage L.NextLayout)
+          , ((modMask,                  XM.xK_Tab   ), osxWindows S.focusDown)
+          , ((modMask .|. XM.shiftMask, XM.xK_Tab   ), osxWindows S.focusUp  )
+          , ((modMask,                  XM.xK_j     ), osxWindows S.focusDown)
+          , ((modMask,                  XM.xK_k     ), osxWindows S.focusUp  )
+          , ((modMask,                  XM.xK_m     ), osxWindows S.focusMaster  )
+          , ((modMask,                  XM.xK_Return), osxWindows S.swapMaster)
+          , ((modMask .|. XM.shiftMask, XM.xK_j     ), osxWindows S.swapDown  )
+          , ((modMask .|. XM.shiftMask, XM.xK_k     ), osxWindows S.swapUp    )
+          , ((modMask,                  XM.xK_h     ), osxSendMessage L.Shrink)
+          , ((modMask,                  XM.xK_l     ), osxSendMessage L.Expand)
+          ]
+
 osxmonad :: (C.LayoutClass l XM.Window, Read (l XM.Window)) => XM.XConfig l -> IO ()
 osxmonad initxmc = do
   setupEventCallback
