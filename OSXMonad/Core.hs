@@ -84,7 +84,7 @@ tile' context = do
 
   namedWindows <- XM.io . getNamedWindows $ context
   let wids = map (fromIntegral . wid) namedWindows
-      newStack = foldr S.insertUp ws $ wids
+      newStack = S.modify Nothing (S.filter (`elem` wids)) $ foldr S.insertUp ws $ wids
 
   XM.modify (\s -> s { XM.windowset = newStack })
 
