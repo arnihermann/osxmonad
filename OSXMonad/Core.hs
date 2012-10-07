@@ -1,6 +1,7 @@
 {-# LANGUAGE FlexibleContexts, ForeignFunctionInterface #-}
 module OSXMonad.Core where
 
+import Control.Applicative
 import Control.Concurrent (threadDelay)
 import Control.Exception (bracket)
 import Control.Monad
@@ -69,10 +70,9 @@ getNamedWindows context = do
   filterM (\win -> (peekCString . name $ win) >>= return . not . all isSpace) windows
 
 tile' :: Ptr Windows -> XM.X ()
-tile' context = C.withWindowSet $ \ws -> do
+tile' context = do
   event <- XM.io getEvent
 
-  xmc <- XM.asks XM.config
   ks <- XM.asks XM.keyActions
 
   let modBits = eventModBits event
@@ -80,17 +80,16 @@ tile' context = C.withWindowSet $ \ws -> do
       maybeAction = Map.lookup (modBits, osxKey) ks
   fromMaybe (return ()) maybeAction
 
+  ws <- XM.gets C.windowset
+
   namedWindows <- XM.io . getNamedWindows $ context
-  let stack = S.stack . S.workspace . S.current $ ws
-      wids = map (fromIntegral . wid) namedWindows
+  let wids = map (fromIntegral . wid) namedWindows
       newStack = foldr S.insertUp ws $ wids
 
   XM.modify (\s -> s { XM.windowset = newStack })
 
   let rect = C.screenRect . S.screenDetail . S.current $ ws
-  (rectangles, _) <- C.runLayout (S.Workspace "OS X" (C.layoutHook xmc) stack) rect
-
-  XM.io . print $ rectangles
+  (rectangles, _) <- C.runLayout (S.workspace . S.current $ ws) rect
 
   let namedWindowsById = zip wids namedWindows
       windows' = Maybe.catMaybes
@@ -129,6 +128,21 @@ screenRectangle = do
                rect_width = round . width $ screenSize,
                rect_height = round . height $ screenSize
              }
+
+osxWindows :: (XM.WindowSet -> XM.WindowSet) -> XM.X ()
+osxWindows f = do
+  XM.XState { C.windowset = old } <- XM.get
+  let ws = f old
+  XM.modify (\s -> s { C.windowset = ws })
+
+osxSendMessage :: C.Message a => a -> XM.X ()
+osxSendMessage a = do
+    w <- S.workspace . S.current <$> XM.gets C.windowset
+    ml' <- C.handleMessage (S.layout w) (C.SomeMessage a) `C.catchX` return Nothing
+    C.whenJust ml' $ \l' ->
+        osxWindows $ \ws -> ws { S.current = (S.current ws)
+                                { S.workspace = (S.workspace $ S.current ws)
+                                  { S.layout = l' }}}
 
 osxmonad :: (C.LayoutClass l XM.Window, Read (l XM.Window)) => XM.XConfig l -> IO ()
 osxmonad initxmc = do
